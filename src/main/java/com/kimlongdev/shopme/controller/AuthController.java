@@ -19,11 +19,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<User> handleCreateUser(@RequestBody SignUpRequest signUpRequest) {
-        User user = new User();
-        user.setEmail(signUpRequest.getEmail());
-        user.setFullName(signUpRequest.getFullName());
 
-        user = userRepository.save(user);
-        return ResponseEntity.ok(user);
+        return null;
     }
 }
