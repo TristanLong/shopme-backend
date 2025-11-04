@@ -2,16 +2,21 @@ package com.kimlongdev.shopme.modal;
 
 import com.kimlongdev.shopme.domain.PaymentStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Map;
 
-@Data
+@Entity
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "payment_details")
 public class PaymentDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     // --- 1. THÔNG TIN NỘI BỘ (Chung cho mọi cổng) ---
 

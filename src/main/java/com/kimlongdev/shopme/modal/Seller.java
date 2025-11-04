@@ -32,7 +32,7 @@ public class Seller {
     @OneToOne(cascade = CascadeType.ALL)
     private Address pickupAddress = new Address();
 
-    private String GSTIN; // Goods and Services Tax Identification Number
+    private String MSTIN; // Mã số thuế (Merchant Sales Tax Identification Number)
 
     private USER_ROLE role = USER_ROLE.ROLE_SELLER;
 

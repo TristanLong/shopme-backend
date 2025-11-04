@@ -34,8 +34,9 @@ public class Order {
     @ManyToOne
     private Address shippingAddress;
 
-    @Embedded
-    private PaymentDetails paymentDetails = new PaymentDetails();
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "payment_details_id")
+    private PaymentDetails paymentDetails;
 
     private double totalMrpPrice;
     private int totalSellingPrice;
