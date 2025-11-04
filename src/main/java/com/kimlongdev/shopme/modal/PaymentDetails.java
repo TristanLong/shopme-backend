@@ -15,7 +15,7 @@ import java.util.Map;
 public class PaymentDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     // --- 1. THÔNG TIN NỘI BỘ (Chung cho mọi cổng) ---
