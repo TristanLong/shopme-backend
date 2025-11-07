@@ -20,7 +20,6 @@ public class JwtProvider {
     private SecretKey secretKey = Keys.hmacShaKeyFor(JwtConstant.SECRET_KEY.getBytes());
 
     /*
-    🔑 GrantedAuthority là gì?
        GrantedAuthority là một interface trong Spring Security, dùng để biểu diễn quyền (authority) mà người dùng có.
        Mỗi GrantedAuthority tượng trưng cho một quyền hoặc vai trò cụ thể (ví dụ: "ROLE_ADMIN", "ROLE_USER", "READ_PRIVILEGE"...).
      */

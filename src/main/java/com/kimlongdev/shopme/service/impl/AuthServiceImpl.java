@@ -1,13 +1,24 @@
 package com.kimlongdev.shopme.service.impl;
 
+import com.kimlongdev.shopme.config.JwtProvider;
 import com.kimlongdev.shopme.domain.USER_ROLE;
+import com.kimlongdev.shopme.modal.Cart;
 import com.kimlongdev.shopme.modal.User;
+import com.kimlongdev.shopme.repository.CartRepository;
 import com.kimlongdev.shopme.repository.UserRepository;
 import com.kimlongdev.shopme.response.SignUpRequest;
 import com.kimlongdev.shopme.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +26,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CartRepository cartRepository;
+    private final JwtProvider jwtProvider;
 
     @Override
     public String createUser(SignUpRequest signUpRequest) {
@@ -29,7 +42,26 @@ public class AuthServiceImpl implements AuthService {
             newUser.setPassword(passwordEncoder.encode(signUpRequest.getOtp()));
 
             user = userRepository.save(newUser);
+
+            Cart cart = new Cart();
+            cart.setUser(user);
+            cartRepository.save(cart);
         }
-        return "";
+        // Assign ROLE_CUSTOMER authority
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(USER_ROLE.ROLE_CUSTOMER.toString()));
+
+        // Create an Authentication object with the user's email and authorities
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                signUpRequest.getEmail(),
+                null,
+                authorities
+        );
+
+        // Set the authentication in the SecurityContext
+        // user is now logged in after sign up
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return jwtProvider.generateToken(authentication);
     }
 }
