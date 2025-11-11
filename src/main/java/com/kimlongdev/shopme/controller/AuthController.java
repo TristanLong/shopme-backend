@@ -1,8 +1,10 @@
 package com.kimlongdev.shopme.controller;
 
 import com.kimlongdev.shopme.domain.USER_ROLE;
+import com.kimlongdev.shopme.modal.VerificationCode;
 import com.kimlongdev.shopme.repository.UserRepository;
 import com.kimlongdev.shopme.modal.User;
+import com.kimlongdev.shopme.response.ApiResponse;
 import com.kimlongdev.shopme.response.AuthResponse;
 import com.kimlongdev.shopme.response.SignUpRequest;
 import com.kimlongdev.shopme.service.AuthService;
@@ -22,7 +24,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> handleCreateUser(@RequestBody SignUpRequest signUpRequest) {
+    public ResponseEntity<AuthResponse> handleCreateUser(@RequestBody SignUpRequest signUpRequest) throws Exception {
         String jwtToken = authService.createUser(signUpRequest);
 
         AuthResponse authResponse = new AuthResponse();
@@ -31,5 +33,15 @@ public class AuthController {
         authResponse.setRole(USER_ROLE.ROLE_CUSTOMER);
 
         return ResponseEntity.ok(authResponse);
+    }
+
+    @PostMapping("/send/login-signup-otp")
+    public ResponseEntity<ApiResponse> handleSendOTP(@RequestBody VerificationCode req) throws Exception {
+        authService.sentLoginOtp(req.getEmail());
+
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setMessage("Send OTP successfully");
+
+        return ResponseEntity.ok(apiResponse);
     }
 }
