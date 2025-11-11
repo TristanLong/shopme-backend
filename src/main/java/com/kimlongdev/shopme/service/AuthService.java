@@ -1,10 +1,12 @@
 package com.kimlongdev.shopme.service;
 
+import com.kimlongdev.shopme.request.LoginRequest;
+import com.kimlongdev.shopme.response.AuthResponse;
 import com.kimlongdev.shopme.response.SignUpRequest;
-import jakarta.servlet.ServletException;
 
 public interface AuthService {
 
     public String createUser(SignUpRequest signUpRequest) throws Exception;
-    void sentLoginOtp(String email) throws Exception;
+    void sendLoginOtp(String email) throws Exception;
+    AuthResponse signingIn(LoginRequest loginRequest) throws Exception;
 }

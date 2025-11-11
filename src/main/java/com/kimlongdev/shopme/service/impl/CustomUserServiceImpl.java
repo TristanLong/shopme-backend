@@ -52,6 +52,10 @@ public class CustomUserServiceImpl implements UserDetailsService {
         if (role == null)
             role = USER_ROLE.ROLE_CUSTOMER;
 
+        if (password == null || password.isEmpty()) {
+            password = "";
+        }
+
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(role.toString()));
 

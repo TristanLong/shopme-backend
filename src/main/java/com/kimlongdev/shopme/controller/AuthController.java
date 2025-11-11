@@ -3,7 +3,7 @@ package com.kimlongdev.shopme.controller;
 import com.kimlongdev.shopme.domain.USER_ROLE;
 import com.kimlongdev.shopme.modal.VerificationCode;
 import com.kimlongdev.shopme.repository.UserRepository;
-import com.kimlongdev.shopme.modal.User;
+import com.kimlongdev.shopme.request.LoginRequest;
 import com.kimlongdev.shopme.response.ApiResponse;
 import com.kimlongdev.shopme.response.AuthResponse;
 import com.kimlongdev.shopme.response.SignUpRequest;
@@ -37,11 +37,18 @@ public class AuthController {
 
     @PostMapping("/send/login-signup-otp")
     public ResponseEntity<ApiResponse> handleSendOTP(@RequestBody VerificationCode req) throws Exception {
-        authService.sentLoginOtp(req.getEmail());
+        authService.sendLoginOtp(req.getEmail());
 
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setMessage("Send OTP successfully");
 
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/signing")
+    public ResponseEntity<AuthResponse> handleLogin(@RequestBody LoginRequest req) throws Exception {
+        AuthResponse authResponse = authService.signingIn(req);
+
+        return ResponseEntity.ok(authResponse);
     }
 }

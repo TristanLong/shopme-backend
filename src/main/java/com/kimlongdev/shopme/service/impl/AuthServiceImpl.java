@@ -8,6 +8,8 @@ import com.kimlongdev.shopme.modal.VerificationCode;
 import com.kimlongdev.shopme.repository.CartRepository;
 import com.kimlongdev.shopme.repository.UserRepository;
 import com.kimlongdev.shopme.repository.VerificationCodeRepository;
+import com.kimlongdev.shopme.request.LoginRequest;
+import com.kimlongdev.shopme.response.AuthResponse;
 import com.kimlongdev.shopme.response.SignUpRequest;
 import com.kimlongdev.shopme.service.AuthService;
 import com.kimlongdev.shopme.service.EmailService;
@@ -18,10 +20,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.plaf.synth.SynthComboBoxUI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -34,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
     private final VerificationCodeRepository verificationCodeRepository;
     private final EmailService emailService;
+    private final CustomUserServiceImpl customUserService;
 
     @Override
     public String createUser(SignUpRequest signUpRequest) throws Exception {
@@ -79,7 +85,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void sentLoginOtp(String email) throws Exception {
+    public void sendLoginOtp(String email) throws Exception {
         String SIGNING_PREFIX = "signing_";
 
         if (email.startsWith(SIGNING_PREFIX)) {
@@ -110,5 +116,47 @@ public class AuthServiceImpl implements AuthService {
         String text = "Your OTP code is: ";
 
         emailService.sendVerificationOtpEmail(email, otp, subject, text);
+    }
+
+    @Override
+    public AuthResponse signingIn(LoginRequest loginRequest) throws Exception {
+        String username = loginRequest.getEmail();
+        String otp = loginRequest.getOtp();
+
+        Authentication authentication = authenticate(username, otp);
+
+        // Đánh dấu người dùng đã đăng nhập, các request sau có thể lấy thông tin từ SecurityContext
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Tạo JWT token chứa thông tin và quyền hạn
+        String token = jwtProvider.generateToken(authentication);
+
+        // Tạo response trả về cho client
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setJwtToken(token);
+        authResponse.setMessage("Login successful");
+
+        // Lấy vai trò của người dùng từ Authentication
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        String role = authorities.isEmpty() ? null : authorities.iterator().next().getAuthority();
+
+        authResponse.setRole(USER_ROLE.valueOf(role));
+        return authResponse;
+    }
+
+    private Authentication authenticate(String username, String otp) throws Exception {
+        // Load user from database
+        UserDetails userDetails = customUserService.loadUserByUsername(username);
+        if (userDetails == null) {
+            throw new Exception("Invalid username or otp");
+        }
+
+        // Verify OTP
+        VerificationCode verificationCode = verificationCodeRepository.findByEmail(username);
+        if (verificationCode == null || !verificationCode.getOtp().equals(otp)) {
+            throw new Exception("wrong otp...");
+        }
+
+
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 }
