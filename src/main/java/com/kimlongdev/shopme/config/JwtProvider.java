@@ -30,7 +30,7 @@ public class JwtProvider {
 
         String jwt= Jwts.builder()
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime()+86400000))
+                .setExpiration(new Date(new Date().getTime()+8640000000L)) // 100 day expiration 60* 60 *24 *1000 ms *100 days
                 .claim("email",auth.getName())
                 .claim("authorities", roles)
                 .signWith(secretKey) // Sign with secret key

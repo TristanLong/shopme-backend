@@ -2,9 +2,9 @@ package com.kimlongdev.shopme.utils;
 
 import java.util.Random;
 
-public class OtpUtil {
+public class OtpUtils {
 
-    public static String generateOtp() {
+    public static String generateOTP() {
         int length = 6;
         Random random = new Random();
         StringBuilder otp = new StringBuilder();

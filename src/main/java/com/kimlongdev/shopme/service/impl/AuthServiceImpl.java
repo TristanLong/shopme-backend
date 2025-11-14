@@ -13,7 +13,7 @@ import com.kimlongdev.shopme.response.AuthResponse;
 import com.kimlongdev.shopme.response.SignUpRequest;
 import com.kimlongdev.shopme.service.AuthService;
 import com.kimlongdev.shopme.service.EmailService;
-import com.kimlongdev.shopme.utils.OtpUtil;
+import com.kimlongdev.shopme.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,7 +24,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.swing.plaf.synth.SynthComboBoxUI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -105,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Generate and save new OTP
-        String otp = OtpUtil.generateOtp();
+        String otp = OtpUtils.generateOTP();
         VerificationCode verificationCode = new VerificationCode();
         verificationCode.setEmail(email);
         verificationCode.setOtp(otp);
