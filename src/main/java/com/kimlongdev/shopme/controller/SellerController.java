@@ -32,7 +32,23 @@ public class SellerController {
     private final JwtProvider jwtProvider;
 
 
-    @PostMapping("/sent/login-top")
+    /*
+1. Client gửi request với body chứa email
+   ↓
+2. Server tạo OTP ngẫu nhiên (6 chữ số)
+   ↓
+3. Lưu OTP vào database (bảng verification_code)
+   - Liên kết với email
+   - Lưu thời gian tạo
+   ↓
+4. Gửi email chứa OTP đến seller
+   - Subject: "Login OTP"
+   - Body: "your login otp is - " + OTP
+   ↓
+5. Trả về response: "otp sent"
+
+     */
+    @PostMapping("/send/login-top")
     public ResponseEntity<ApiResponse> sentLoginOtp(@RequestBody VerificationCode req) throws MessagingException, SellerException {
         String otp = OtpUtils.generateOTP();
         VerificationCode verificationCode = verificationService.createVerificationCode(otp, req.getEmail());
@@ -46,9 +62,26 @@ public class SellerController {
         return new ResponseEntity<>(res, HttpStatus.CREATED);
     }
 
+
+    /*
+1. Client gửi OTP qua URL path
+   ↓
+2. Server tìm VerificationCode trong database theo OTP
+   ↓
+3. Kiểm tra OTP có tồn tại và khớp không
+   - Nếu sai → throw exception "wrong otp..."
+   ↓
+4. Gọi sellerService.verifyEmail(email, otp)
+   - Tìm seller theo email
+   - Cập nhật emailVerified = true
+   - Cập nhật accountStatus (có thể)
+   - Xóa hoặc vô hiệu hóa OTP
+   ↓
+5. Trả về thông tin seller đã verified
+1. Client gửi request với path variable chứa otp
+     */
     @PatchMapping("/verify/{otp}")
     public ResponseEntity<Seller> verifySellerEmail(@PathVariable String otp) throws SellerException {
-
 
         VerificationCode verificationCode = verificationCodeRepository.findByOtp(otp);
 
