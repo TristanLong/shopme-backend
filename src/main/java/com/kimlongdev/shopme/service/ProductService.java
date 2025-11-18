@@ -37,4 +37,6 @@ public interface ProductService {
 
     public List<Product> recentlyAddedProduct();
     List<Product> getProductBySellerId(Long sellerId);
+
+    List<Product> createProducts(List<CreateProductRequest> requests, Seller seller);
 }

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -222,4 +223,23 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getProductBySellerId(Long sellerId) {
         return productRepository.findBySellerId(sellerId);
     }
+
+    @Override
+    @Transactional
+    public List<Product> createProducts(List<CreateProductRequest> requests, Seller seller) {
+        List<Product> products = new ArrayList<>();
+
+        for (CreateProductRequest req : requests) {
+            try {
+                Product product = createProduct(req, seller);
+                products.add(product);
+            } catch (ProductException e) {
+                // Rollback transaction if any product creation fails
+                throw new RuntimeException("Failed to create products in bulk: " + e.getMessage());
+            }
+        }
+
+        return products;
+    }
+
 }
