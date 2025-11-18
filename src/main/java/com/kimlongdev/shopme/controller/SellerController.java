@@ -2,9 +2,11 @@ package com.kimlongdev.shopme.controller;
 
 import com.kimlongdev.shopme.config.JwtProvider;
 import com.kimlongdev.shopme.domain.AccountStatus;
+import com.kimlongdev.shopme.exception.SellerException;
 import com.kimlongdev.shopme.modal.Seller;
 import com.kimlongdev.shopme.modal.VerificationCode;
 import com.kimlongdev.shopme.repository.VerificationCodeRepository;
+import com.kimlongdev.shopme.response.ApiResponse;
 import com.kimlongdev.shopme.service.EmailService;
 import com.kimlongdev.shopme.service.SellerService;
 import com.kimlongdev.shopme.service.VerificationService;
@@ -17,9 +19,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/sellers")
+@RequiredArgsConstructor
 public class SellerController {
 
     private final SellerService sellerService;
@@ -28,13 +31,29 @@ public class SellerController {
     private final VerificationService verificationService;
     private final JwtProvider jwtProvider;
 
+
+    @PostMapping("/sent/login-top")
+    public ResponseEntity<ApiResponse> sentLoginOtp(@RequestBody VerificationCode req) throws MessagingException, SellerException {
+        String otp = OtpUtils.generateOTP();
+        VerificationCode verificationCode = verificationService.createVerificationCode(otp, req.getEmail());
+
+        String subject = "Login OTP";
+        String text = "your login otp is - ";
+        emailService.sendVerificationOtpEmail(req.getEmail(), verificationCode.getOtp(), subject, text);
+
+        ApiResponse res = new ApiResponse();
+        res.setMessage("otp sent");
+        return new ResponseEntity<>(res, HttpStatus.CREATED);
+    }
+
     @PatchMapping("/verify/{otp}")
-    public ResponseEntity<Seller> verifySellerEmail(@PathVariable String otp) throws Exception {
+    public ResponseEntity<Seller> verifySellerEmail(@PathVariable String otp) throws SellerException {
+
 
         VerificationCode verificationCode = verificationCodeRepository.findByOtp(otp);
 
         if (verificationCode == null || !verificationCode.getOtp().equals(otp)) {
-            throw new Exception("wrong otp...");
+            throw new SellerException("wrong otp...");
         }
 
         Seller seller = sellerService.verifyEmail(verificationCode.getEmail(), otp);
@@ -44,7 +63,7 @@ public class SellerController {
 
 
     @PostMapping
-    public ResponseEntity<Seller> createSeller(@RequestBody Seller seller) throws Exception, MessagingException {
+    public ResponseEntity<Seller> createSeller(@RequestBody Seller seller) throws SellerException, MessagingException {
         Seller savedSeller = sellerService.createSeller(seller);
 
         String otp = OtpUtils.generateOTP();
@@ -58,14 +77,14 @@ public class SellerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws Exception {
+    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws SellerException {
         Seller seller = sellerService.getSellerById(id);
         return new ResponseEntity<>(seller, HttpStatus.OK);
     }
 
     @GetMapping("/profile")
     public ResponseEntity<Seller> getSellerByJwt(
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader("Authorization") String jwt) throws SellerException {
         String email = jwtProvider.getEmailFromJwtToken(jwt);
         Seller seller = sellerService.getSellerByEmail(email);
         return new ResponseEntity<>(seller, HttpStatus.OK);
@@ -73,16 +92,14 @@ public class SellerController {
 
     @GetMapping
     public ResponseEntity<List<Seller>> getAllSellers(
-            @RequestParam(required = false) AccountStatus status)
-            throws Exception {
-
+            @RequestParam(required = false) AccountStatus status) {
         List<Seller> sellers = sellerService.getAllSellers(status);
         return ResponseEntity.ok(sellers);
     }
 
     @PatchMapping()
     public ResponseEntity<Seller> updateSeller(
-            @RequestHeader("Authorization") String jwt, @RequestBody Seller seller) throws Exception {
+            @RequestHeader("Authorization") String jwt, @RequestBody Seller seller) throws SellerException {
 
         Seller profile = sellerService.getSellerProfile(jwt);
         Seller updatedSeller = sellerService.updateSeller(profile.getId(), seller);
@@ -91,7 +108,7 @@ public class SellerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSeller(@PathVariable Long id) throws Exception {
+    public ResponseEntity<Void> deleteSeller(@PathVariable Long id) throws SellerException {
 
         sellerService.deleteSeller(id);
         return ResponseEntity.noContent().build();

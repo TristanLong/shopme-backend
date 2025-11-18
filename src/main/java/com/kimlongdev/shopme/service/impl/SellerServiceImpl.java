@@ -3,6 +3,7 @@ package com.kimlongdev.shopme.service.impl;
 import com.kimlongdev.shopme.config.JwtProvider;
 import com.kimlongdev.shopme.domain.AccountStatus;
 import com.kimlongdev.shopme.domain.USER_ROLE;
+import com.kimlongdev.shopme.exception.SellerException;
 import com.kimlongdev.shopme.modal.Address;
 import com.kimlongdev.shopme.modal.Seller;
 import com.kimlongdev.shopme.repository.AddressRepository;
@@ -26,16 +27,16 @@ public class SellerServiceImpl implements SellerService {
 
 
     @Override
-    public Seller getSellerProfile(String jwt) throws Exception {
+    public Seller getSellerProfile(String jwt) throws SellerException {
         String email = jwtProvider.getEmailFromJwtToken(jwt);
         return this.getSellerByEmail(email);
     }
 
     @Override
-    public Seller createSeller(Seller seller) throws Exception {
+    public Seller createSeller(Seller seller) throws SellerException {
         Seller sellerExist = sellerRepository.findByEmail(seller.getEmail());
         if (sellerExist != null) {
-            throw new Exception("Seller already exists used different email");
+            throw new SellerException("Seller already exists used different email");
         }
 
         Address savedAddress = addressRepository.save(seller.getPickupAddress());
@@ -57,21 +58,21 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller getSellerById(Long id) throws Exception {
+    public Seller getSellerById(Long id) throws SellerException {
         Optional<Seller> optionalSeller = sellerRepository.findById(id);
         if (optionalSeller.isPresent()) {
             return optionalSeller.get();
         }
-        throw new Exception("Seller not found");
+        throw new SellerException("Seller not found");
     }
 
     @Override
-    public Seller getSellerByEmail(String email) throws Exception {
+    public Seller getSellerByEmail(String email) throws SellerException {
         Seller seller = sellerRepository.findByEmail(email);
         if (seller != null) {
             return seller;
         }
-        throw new Exception("Seller not found");
+        throw new SellerException("Seller not found");
     }
 
     @Override
@@ -80,10 +81,10 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller updateSeller(Long id, Seller seller) throws Exception {
+    public Seller updateSeller(Long id, Seller seller) throws SellerException {
         Seller existingSeller = sellerRepository.findById(id)
                 .orElseThrow(() ->
-                        new Exception("Seller not found with id " + id));
+                        new SellerException("Seller not found with id " + id));
 
 
         if (seller.getSellerName() != null) {
@@ -145,23 +146,23 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public void deleteSeller(Long id) throws Exception {
+    public void deleteSeller(Long id) throws SellerException {
         if (sellerRepository.existsById(id)) {
             sellerRepository.deleteById(id);
         } else {
-            throw new Exception("Seller not found with id " + id);
+            throw new SellerException("Seller not found with id " + id);
         }
     }
 
     @Override
-    public Seller verifyEmail(String email, String otp) throws Exception {
+    public Seller verifyEmail(String email, String otp) throws SellerException {
         Seller seller = this.getSellerByEmail(email);
         seller.setEmailVerified(true);
         return sellerRepository.save(seller);
     }
 
     @Override
-    public Seller updateSellerAccountStatus(Long sellerId, AccountStatus status) throws Exception {
+    public Seller updateSellerAccountStatus(Long sellerId, AccountStatus status) throws SellerException {
         Seller seller = this.getSellerById(sellerId);
         seller.setAccountStatus(status);
         return sellerRepository.save(seller);
