@@ -4,10 +4,12 @@ import com.kimlongdev.shopme.config.JwtProvider;
 import com.kimlongdev.shopme.domain.AccountStatus;
 import com.kimlongdev.shopme.exception.SellerException;
 import com.kimlongdev.shopme.modal.Seller;
+import com.kimlongdev.shopme.modal.SellerReport;
 import com.kimlongdev.shopme.modal.VerificationCode;
 import com.kimlongdev.shopme.repository.VerificationCodeRepository;
 import com.kimlongdev.shopme.response.ApiResponse;
 import com.kimlongdev.shopme.service.EmailService;
+import com.kimlongdev.shopme.service.SellerReportService;
 import com.kimlongdev.shopme.service.SellerService;
 import com.kimlongdev.shopme.service.VerificationService;
 import com.kimlongdev.shopme.utils.OtpUtils;
@@ -30,6 +32,7 @@ public class SellerController {
     private final VerificationCodeRepository verificationCodeRepository;
     private final VerificationService verificationService;
     private final JwtProvider jwtProvider;
+    private final SellerReportService sellerReportService;
 
 
     /*
@@ -146,5 +149,14 @@ public class SellerController {
         sellerService.deleteSeller(id);
         return ResponseEntity.noContent().build();
 
+    }
+
+    @GetMapping("/report")
+    public ResponseEntity<SellerReport> getSellerReport(
+            @RequestHeader("Authorization") String jwt) throws SellerException {
+        String email = jwtProvider.getEmailFromJwtToken(jwt);
+        Seller seller = sellerService.getSellerByEmail(email);
+        SellerReport report = sellerReportService.getSellerReport(seller);
+        return new ResponseEntity<>(report, HttpStatus.OK);
     }
 }
