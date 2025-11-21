@@ -29,4 +29,5 @@ public class Cart {
     private int totalMrpPrice; // Maximum Retail Price
     private int discount;
     private String couponCode;
+    private int couponPrice;
 }
